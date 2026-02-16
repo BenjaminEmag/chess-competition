@@ -1,0 +1,97 @@
+name: Build WASM & Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── Install build tools ──────────────────────────────────
+      - name: Install CMake and build essentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential
+
+      # ── 1 & 2. Download + install latest Emscripten ──────────
+      - name: Clone emsdk
+        run: git clone https://github.com/emscripten-core/emsdk.git
+
+      - name: Install and activate latest Emscripten
+        run: |
+          cd emsdk
+          ./emsdk install latest
+          ./emsdk activate latest
+
+      - name: Remove Emscripten fake SDL headers
+        run: find emsdk -path "*/fakesdl*" -type d -exec rm -rf {} + || true
+
+      - name: Verify Emscripten
+        run: |
+          source emsdk/emsdk_env.sh
+          emcc --version
+
+      # ── 3. Build all three targets as WebAssembly ─────────────
+      - name: Configure CMake with Emscripten
+        run: |
+          source emsdk/emsdk_env.sh
+          emcmake cmake -B build-wasm -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: |
+          source emsdk/emsdk_env.sh
+          cmake --build build-wasm --parallel
+
+      # ── 5. Prepare GitHub Pages directory ─────────────────────
+      - name: Assemble site
+        run: |
+          mkdir -p _site/gui _site/cli _site/lib
+
+          # Landing page
+          cp web/index.html _site/
+
+          # Chess GUI (SDL + ImGui rendered in browser)
+          cp build-wasm/chessgui.html _site/gui/index.html
+          cp build-wasm/chessgui.js   _site/gui/
+          cp build-wasm/chessgui.wasm _site/gui/
+
+          # Chess CLI (console in browser)
+          cp build-wasm/chesscli.html _site/cli/index.html
+          cp build-wasm/chesscli.js   _site/cli/
+          cp build-wasm/chesscli.wasm _site/cli/
+
+          # Chess Bot WASM library (JS-callable Move function)
+          cp build-wasm/chesswasm.js   _site/lib/
+          cp build-wasm/chesswasm.wasm _site/lib/
+          cp web/lib-demo.html         _site/lib/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      # ── 4. Deploy to GitHub Pages ─────────────────────────────
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Competition – WebAssembly</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+    h1 { font-size: 2.4rem; margin-bottom: .5rem; color: #fff; }
+    p.subtitle { color: #aaa; margin-bottom: 2.5rem; }
+    .cards {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 280px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    }
+    .card h2 { font-size: 1.3rem; margin-bottom: .5rem; color: #e94560; }
+    .card p  { font-size: .9rem; color: #bbb; line-height: 1.5; }
+    footer { margin-top: 3rem; color: #555; font-size: .8rem; }
+  </style>
+</head>
+<body>
+  <h1>♟ Chess Competition</h1>
+  <p class="subtitle">All targets compiled to WebAssembly with Emscripten</p>
+
+  <div class="cards">
+    <a class="card" href="gui/">
+      <h2>♜ Chess GUI</h2>
+      <p>Interactive chess board rendered with SDL2&nbsp;+&nbsp;ImGui. Watch the AI play against itself or step through moves.</p>
+    </a>
+
+    <a class="card" href="cli/">
+      <h2>⌨ Chess CLI</h2>
+      <p>Command-line interface compiled to WASM. Enter a FEN string and get the best move in UCI notation.</p>
+    </a>
+
+    <a class="card" href="lib/">
+      <h2>📦 Chess Bot Library</h2>
+      <p>Use the chess engine directly from JavaScript. The <code>move(fen)</code> function is exposed via Embind.</p>
+    </a>
+  </div>
+
+  <footer>Built with Emscripten &middot; Deployed via GitHub Pages</footer>
+</body>
+</html>

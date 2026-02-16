@@ -393,7 +393,11 @@ int main(int argc, char *argv[]) {
     ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData(), renderer);
     SDL_RenderPresent(renderer);
 
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(0);
+#else
     SDL_Delay(0);
+#endif
   }
 
   // Cleanup

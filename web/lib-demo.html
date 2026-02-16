@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Bot Library – Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 { margin-bottom: .5rem; color: #fff; }
+    p.desc { color: #aaa; margin-bottom: 2rem; max-width: 600px; text-align: center; }
+    .demo {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+    }
+    label { display: block; margin-bottom: .5rem; color: #ccc; font-size: .9rem; }
+    input, button {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: .6rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #0f3460;
+    }
+    input {
+      width: 100%;
+      background: #0f3460;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #e94560;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      transition: background .15s;
+    }
+    button:hover { background: #c73e54; }
+    button:disabled { opacity: .5; cursor: wait; }
+    #result {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #0f3460;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1.1rem;
+      min-height: 2.5rem;
+    }
+    pre.usage {
+      margin-top: 2rem;
+      background: #0d1b36;
+      padding: 1rem;
+      border-radius: 6px;
+      font-size: .85rem;
+      overflow-x: auto;
+      color: #8ec07c;
+      line-height: 1.6;
+    }
+    a { color: #e94560; }
+  </style>
+</head>
+<body>
+  <h1>📦 Chess Bot Library</h1>
+  <p class="desc">
+    The <code>ChessSimulator::Move()</code> function compiled to WebAssembly
+    and exposed to JavaScript via Embind.
+  </p>
+
+  <div class="demo">
+    <label for="fen">FEN string</label>
+    <input id="fen" type="text"
+      value="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" />
+    <button id="go" disabled>Loading WASM…</button>
+
+    <div id="result"></div>
+
+    <pre class="usage">// Usage in your own page:
+import ChessBot from './chesswasm.js';
+
+const bot = await ChessBot();
+const uci = bot.move(fen);   // e.g. "e2e4"</pre>
+  </div>
+
+  <p style="margin-top:2rem"><a href="../">← Back</a></p>
+
+  <script type="module">
+    import ChessBot from './chesswasm.js';
+
+    const btn    = document.getElementById('go');
+    const input  = document.getElementById('fen');
+    const result = document.getElementById('result');
+
+    const bot = await ChessBot();
+    btn.textContent = 'Get Move';
+    btn.disabled = false;
+
+    btn.addEventListener('click', () => {
+      const fen  = input.value.trim();
+      if (!fen) { result.textContent = 'Please enter a FEN string.'; return; }
+      try {
+        const move = bot.move(fen);
+        result.textContent = move ? `Best move: ${move}` : 'No legal moves.';
+      } catch (e) {
+        result.textContent = `Error: ${e.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
