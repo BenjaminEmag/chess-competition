@@ -115,6 +115,9 @@ static bool isEndGame(const chess::Board& board) {
 static int evaluate(const chess::Board& board) {
 	int score = 0;
 
+	if (board.isHalfMoveDraw()) return 0;
+	if (board.isInsufficientMaterial()) return 0;
+
 	for (int pt = 0; pt < 5; pt++)
 	{
 		auto type = static_cast<chess::PieceType::underlying>(pt);
@@ -197,7 +200,7 @@ static const int MATE = 100000;
 
 static int minimax(chess::Board& board, int depth, int alpha, int beta, bool isMaximizing, int ply) {
 	checkTime();
-	if (timeUp) return 0;
+	if (timeUp) return evaluate(board);
 
 	chess::Movelist moves;
 	chess::movegen::legalmoves(moves, board);
