@@ -150,9 +150,8 @@ static int evaluate(const chess::Board& board) {
 	return score;
 }
 
-static constexpr int TIME_LIMIT_MS = 4500;
-
 static std::chrono::steady_clock::time_point searchStart;
+static int timeLimit;
 static bool timeUp;
 static int nodeCount;
 
@@ -160,7 +159,7 @@ static void checkTime()
 {
 	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - searchStart).count();
 
-	if (elapsed >= TIME_LIMIT_MS)
+	if (elapsed >= timeLimit)
 		timeUp = true;
 }
 
@@ -274,6 +273,7 @@ std::string ChessSimulator::Move(std::string fen, int timeLimitMs) {
 	if (moves.size() == 1) return chess::uci::moveToUci(moves[0]);
 
 	searchStart = std::chrono::steady_clock::now();
+	timeLimit = timeLimitMs;
 	timeUp = false;
 	nodeCount = 0;
 
