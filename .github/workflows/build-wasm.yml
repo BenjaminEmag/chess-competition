@@ -3,6 +3,8 @@ name: Build WASM & Deploy to GitHub Pages
 on:
   push:
     branches: [main, master]
+  schedule:
+    - cron: '0 */4 * * *'
   workflow_dispatch:
 
 permissions:
@@ -16,6 +18,7 @@ concurrency:
 
 jobs:
   build-and-deploy:
+    if: ${{ github.event_name != 'schedule' || github.repository == 'gameguild-gg/chess-competition' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -48,6 +51,11 @@ jobs:
         run: |
           source emsdk/emsdk_env.sh
           emcc --version
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
       # ── 3. Build all three targets as WebAssembly ─────────────
       - name: Configure CMake with Emscripten
@@ -83,8 +91,28 @@ jobs:
           cp build-wasm/chesswasm.wasm _site/lib/
           cp web/lib-demo.html         _site/lib/index.html
 
+      # ── 6. Build competition bots & React app ─────────────────
+      - name: Build all fork bots
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          source emsdk/emsdk_env.sh
+          bash competition/build-bots.sh
+
+      - name: Build competition React app
+        run: |
+          cd competition/web
+          npm install
+          npx vite build
+
+      - name: Copy competition to site
+        run: |
+          cp -r competition/web/dist _site/competition
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

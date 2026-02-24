@@ -5,10 +5,6 @@
 #include <algorithm>
 #include <chrono>
 
-
-// https://www.chessprogramming.org/Simplified_Evaluation_Function
-using namespace ChessSimulator;
-
 // Values in centiPawns
 // P = 100
 // N = 320
@@ -268,10 +264,11 @@ static int minimax(chess::Board& board, int depth, int alpha, int beta, bool isM
 	}
 }
 
-std::string ChessSimulator::Move(std::string fen) {
+std::string ChessSimulator::Move(std::string fen, int timeLimitMs) {
 	chess::Board board(fen);
 	chess::Movelist moves;
 	chess::movegen::legalmoves(moves, board);
+
 
 	if (moves.size() == 0) return "";
 	if (moves.size() == 1) return chess::uci::moveToUci(moves[0]);

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess GUI</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+    #canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+    /* Hide the default Emscripten output/status elements */
+    .emscripten_border { display: none; }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" class="emscripten" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+
+  <script>
+    // Size the canvas backing buffer to match the viewport
+    var canvas = document.getElementById('canvas');
+    function resizeCanvas() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+  </script>
+
+  <script>
+    var Module = {
+      canvas: (function() { return document.getElementById('canvas'); })()
+    };
+  </script>
+
+  {{{ SCRIPT }}}
+</body>
+</html>

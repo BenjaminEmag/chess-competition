@@ -9,8 +9,13 @@ cmake-**/
 # node
 **/package-lock.json
 
+# build artifacts
+competition/web/dist/
+
 
 
 
 
 .DS_Store
+
+competition/web/node_modules/

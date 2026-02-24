@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess CLI – WebAssembly</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 { margin-bottom: .5rem; color: #fff; }
+    p.desc { color: #aaa; margin-bottom: 2rem; max-width: 600px; text-align: center; }
+    .demo {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 600px;
+    }
+    label { display: block; margin-bottom: .5rem; color: #ccc; font-size: .9rem; }
+    input, button {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: .6rem 1rem;
+      border-radius: 6px;
+      border: 1px solid #0f3460;
+    }
+    input {
+      width: 100%;
+      background: #0f3460;
+      color: #fff;
+      margin-bottom: 1rem;
+    }
+    button {
+      background: #e94560;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      transition: background .15s;
+    }
+    button:hover { background: #c73e54; }
+    button:disabled { opacity: .5; cursor: wait; }
+    #output {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: #0f3460;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 1.1rem;
+      min-height: 2.5rem;
+      white-space: pre-wrap;
+    }
+    a { color: #e94560; }
+  </style>
+</head>
+<body>
+  <h1>⌨️ Chess CLI</h1>
+  <p class="desc">
+    The chess-cli program compiled to WebAssembly.<br>
+    Enter a FEN string and click <strong>Run</strong> to see the best move.
+  </p>
+
+  <div class="demo">
+    <label for="fen">FEN string</label>
+    <input id="fen" type="text"
+      value="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" />
+    <button id="run" disabled>Loading WASM…</button>
+    <div id="output"></div>
+  </div>
+
+  <p style="margin-top:2rem"><a href="../">← Back</a></p>
+
+  <script>
+    // Stdin buffer: the FEN string + newline, fed character by character.
+    var stdinBuf = [];
+    var stdinPos = 0;
+
+    var outputEl  = document.getElementById('output');
+    var runBtn    = document.getElementById('run');
+    var fenInput  = document.getElementById('fen');
+
+    var Module = {
+      noInitialRun: true, // don't run main() on load
+      print: function(text) {
+        outputEl.textContent += text + '\n';
+      },
+      printErr: function(text) {
+        console.warn('stderr:', text);
+      },
+      stdin: function() {
+        if (stdinPos < stdinBuf.length) {
+          return stdinBuf[stdinPos++];
+        }
+        return null; // EOF
+      },
+      onRuntimeInitialized: function() {
+        runBtn.textContent = 'Run';
+        runBtn.disabled = false;
+      }
+    };
+
+    runBtn.addEventListener('click', function() {
+      var fen = fenInput.value.trim();
+      if (!fen) { outputEl.textContent = 'Please enter a FEN string.'; return; }
+
+      // Prepare stdin buffer: FEN + newline as char codes
+      var input = fen + '\n';
+      stdinBuf = [];
+      stdinPos = 0;
+      for (var i = 0; i < input.length; i++) {
+        stdinBuf.push(input.charCodeAt(i));
+      }
+
+      // Clear previous output
+      outputEl.textContent = '';
+
+      // Run main()
+      try {
+        Module.callMain([]);
+      } catch (e) {
+        if (e.message !== 'exit(0)' && e.name !== 'ExitStatus') {
+          outputEl.textContent += 'Error: ' + e.message + '\n';
+        }
+      }
+    });
+  </script>
+
+  {{{ SCRIPT }}}
+</body>
+</html>
